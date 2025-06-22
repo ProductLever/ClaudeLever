@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trending Meme Ad Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 800;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .panel h2 {
+            color: #4A5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .image-preview {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .image-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 3px solid #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-remove {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .trend-item {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+
+        .trend-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(240, 147, 251, 0.4);
+        }
+
+        .trend-item.selected {
+            border-color: #ffd700;
+            transform: scale(1.02);
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+        }
+
+        .trend-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .trend-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .trend-description {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .product-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .product-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .ad-preview {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 3px solid #ff9a56;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ad-preview::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .ad-header {
+            text-align: center;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ad-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .ad-subtitle {
+            color: #4a5568;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .ad-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .ad-body {
+            background: rgba(255,255,255,0.8);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            font-size: 1.1rem;
+            color: #2d3748;
+        }
+
+        .ad-images {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .ad-image {
+            width: 120px;
+            height: 120px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 3px solid #ff9a56;
+            box-shadow: 0 8px 25px rgba(255, 154, 86, 0.3);
+        }
+
+        .ad-cta {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ad-cta:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(238, 90, 36, 0.4);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .platform-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.3);
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Trending Meme Ad Generator</h1>
+            <p>Analyze viral content and create targeted ads that connect with your audience</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="panel">
+                <h2>📊 Current Trending Content</h2>
+                <div id="trending-content">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Analyzing trending memes and posts...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>🎯 AI Ad Generator</h2>
+                <div class="controls">
+                    <input type="text" class="product-input" id="product-input" 
+                           placeholder="Enter your product (e.g., Energy Drink, Gaming Headset, etc.)">
+                </div>
+                <div class="controls">
+                    <select class="product-input" id="trend-select">
+                        <option value="">Select a trending meme to base your ad on...</option>
+                    </select>
+                </div>
+                <div class="controls">
+                    <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                    <button class="btn" onclick="document.getElementById('image-upload').click()" style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);">
+                        📸 Add Product Image
+                    </button>
+                    <button class="btn" onclick="generateAd()">Generate Ad</button>
+                </div>
+                <div id="uploaded-images"></div>
+                <div id="ad-output"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulated trending data that would come from Twitter/Reddit APIs
+        const trendingData = [
+            {
+                id: 'distracted-bf-ai',
+                title: "Distracted Boyfriend pointing at AI",
+                platform: "Reddit",
+                engagement: "2.3M views",
+                sentiment: "Humorous",
+                description: "Classic meme format adapted for AI anxiety - perfect for tech products"
+            },
+            {
+                id: 'monday-motivation',
+                title: "#MondayMotivation with gym fails",
+                platform: "Twitter",
+                engagement: "890K likes",
+                sentiment: "Motivational",
+                description: "Fitness content is trending, especially relatable workout struggles"
+            },
+            {
+                id: 'drake-tech',
+                title: "Drake rejecting old tech, accepting new tech",
+                platform: "Reddit",
+                engagement: "1.7M upvotes",
+                sentiment: "Comparative",
+                description: "Technology upgrade memes are viral - great for product comparisons"
+            },
+            {
+                id: 'expanding-brain-coffee',
+                title: "Expanding brain: coffee evolution",
+                platform: "Twitter",
+                engagement: "650K retweets",
+                sentiment: "Progressive",
+                description: "Coffee culture and productivity hacks are dominating feeds"
+            },
+            {
+                id: 'this-is-fine-2025',
+                title: "This is fine dog but it's 2025",
+                platform: "Reddit",
+                engagement: "3.1M views",
+                sentiment: "Relatable stress",
+                description: "Updated classic meme reflecting modern challenges and resilience"
+            }
+        ];
+
+        // Trend-specific ad templates
+        const trendTemplates = {
+            'distracted-bf-ai': {
+                title: "STOP GETTING DISTRACTED BY INFERIOR PRODUCTS 👀",
+                subtitle: "Your product is the upgrade everyone's looking at",
+                bodyTemplate: "You know that feeling when you see something better? That's everyone looking at [PRODUCT] while still using outdated alternatives. Don't be the distracted boyfriend - be the irresistible upgrade!",
+                cta: "Make The Switch Everyone's Talking About!"
+            },
+            'monday-motivation': {
+                title: "MONDAY MOTIVATION MEETS [PRODUCT] POWER 💪",
+                subtitle: "Turn your Monday fails into wins",
+                bodyTemplate: "Tired of Monday struggles? [PRODUCT] transforms your weekly grind into a victory lap. Join millions who've upgraded their Monday game!",
+                cta: "Power Up Your Week!"
+            },
+            'drake-tech': {
+                title: "DRAKE SAYS NO TO OLD, YES TO [PRODUCT] ✋➡️👍",
+                subtitle: "The choice is obvious",
+                bodyTemplate: "Drake pointing away from basic alternatives, Drake pointing toward [PRODUCT]. The meme speaks for itself - when you know, you know.",
+                cta: "Make The Obviously Better Choice!"
+            },
+            'expanding-brain-coffee': {
+                title: "EXPANDING BRAIN: THE [PRODUCT] EVOLUTION 🧠",
+                subtitle: "From basic to brilliant",
+                bodyTemplate: "Small brain: Basic products. Galaxy brain: [PRODUCT]. Join the enlightened users who've ascended to the next level of quality.",
+                cta: "Evolve Your Experience!"
+            },
+            'this-is-fine-2025': {
+                title: "STOP SAYING 'THIS IS FINE' - GET [PRODUCT] 🔥",
+                subtitle: "When everything's chaos, choose quality",
+                bodyTemplate: "2025 got you like 'this is fine' while everything burns? [PRODUCT] is your fireproof solution. Don't just survive the chaos - thrive in it!",
+                cta: "Escape The Chaos - Upgrade Now!"
+            }
+        };
+
+        let uploadedImages = [];
+        let selectedTrend = null;
+
+        function displayTrendingContent() {
+            const container = document.getElementById('trending-content');
+            const trendSelect = document.getElementById('trend-select');
+            
+            setTimeout(() => {
+                container.innerHTML = trendingData.map(trend => `
+                    <div class="trend-item" data-trend-id="${trend.id}" onclick="selectTrend('${trend.id}')">
+                        <div class="trend-title">${trend.title}</div>
+                        <div class="trend-stats">
+                            <span class="platform-tag">${trend.platform}</span>
+                            <span>${trend.engagement}</span>
+                        </div>
+                        <div class="trend-description">${trend.description}</div>
+                    </div>
+                `).join('');
+
+                // Populate dropdown
+                trendSelect.innerHTML = '<option value="">Select a trending meme to base your ad on...</option>' +
+                    trendingData.map(trend => `<option value="${trend.id}">${trend.title}</option>`).join('');
+            }, 2000);
+        }
+
+        function selectTrend(trendId) {
+            // Remove previous selection
+            document.querySelectorAll('.trend-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Add selection to clicked item
+            document.querySelector(`[data-trend-id="${trendId}"]`).classList.add('selected');
+            
+            // Update dropdown
+            document.getElementById('trend-select').value = trendId;
+            selectedTrend = trendId;
+        }
+
+        // Handle image uploads
+        document.getElementById('image-upload').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            const container = document.getElementById('uploaded-images');
+            
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imageData = {
+                            src: e.target.result,
+                            name: file.name,
+                            id: Date.now() + Math.random()
+                        };
+                        uploadedImages.push(imageData);
+                        updateImagePreview();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+
+        // Handle dropdown selection
+        document.getElementById('trend-select').addEventListener('change', function(e) {
+            if (e.target.value) {
+                selectTrend(e.target.value);
+            } else {
+                document.querySelectorAll('.trend-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                selectedTrend = null;
+            }
+        });
+
+        function updateImagePreview() {
+            const container = document.getElementById('uploaded-images');
+            if (uploadedImages.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = `
+                <div style="margin: 15px 0;">
+                    <h3 style="color: #4A5568; margin-bottom: 10px;">📸 Product Images:</h3>
+                    <div class="image-preview">
+                        ${uploadedImages.map(img => `
+                            <div class="image-item">
+                                <img src="${img.src}" alt="${img.name}">
+                                <button class="image-remove" onclick="removeImage('${img.id}')">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function removeImage(imageId) {
+            uploadedImages = uploadedImages.filter(img => img.id != imageId);
+            updateImagePreview();
+        }
+
+        function generateAd() {
+            const productInput = document.getElementById('product-input').value.trim();
+            const adOutput = document.getElementById('ad-output');
+            
+            if (!productInput) {
+                alert('Please enter a product to generate an ad!');
+                return;
+            }
+
+            if (!selectedTrend) {
+                alert('Please select a trending meme to base your ad on!');
+                return;
+            }
+
+            // Show loading
+            adOutput.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing selected trend and generating targeted ad...</p>
+                </div>
+            `;
+
+            setTimeout(() => {
+                // Get the selected trend template
+                const template = trendTemplates[selectedTrend];
+                const trendData = trendingData.find(t => t.id === selectedTrend);
+                
+                if (!template) {
+                    alert('Error: Template not found for selected trend');
+                    return;
+                }
+
+                // Replace [PRODUCT] placeholders with actual product
+                const title = template.title.replace(/\[PRODUCT\]/g, productInput.toUpperCase());
+                const body = template.bodyTemplate.replace(/\[PRODUCT\]/g, productInput);
+
+                // Generate personalized ad
+                const imageSection = uploadedImages.length > 0 ? `
+                    <div class="ad-images">
+                        ${uploadedImages.map(img => `<img src="${img.src}" alt="Product" class="ad-image">`).join('')}
+                    </div>
+                ` : '';
+
+                const personalizedAd = `
+                    <div class="ad-preview">
+                        <div class="ad-header">
+                            <div class="ad-title">${title}</div>
+                            <div class="ad-subtitle">${template.subtitle}</div>
+                        </div>
+                        <div class="ad-content">
+                            ${imageSection}
+                            <div class="ad-body">
+                                <strong>🔥 Based on trending: "${trendData.title}"</strong><br><br>
+                                ${body}
+                            </div>
+                            <button class="ad-cta">${template.cta}</button>
+                        </div>
+                    </div>
+                `;
+
+                adOutput.innerHTML = personalizedAd;
+            }, 1500);
+        }
+
+        // Initialize the app
+        displayTrendingContent();
+
+        // Allow Enter key to generate ad
+        document.getElementById('product-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateAd();
+            }
+        });
+    </script>
+</body>
+</html>
